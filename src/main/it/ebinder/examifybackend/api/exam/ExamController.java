@@ -22,6 +22,7 @@ public class ExamController {
         //TODO
         JsonObject examJson = new Gson().fromJson("{\n" +
                 "  \"title\": \"IDB Exam Demo\",\n" +
+                "  \"editable\": true,\n" +
                 "  \"questions\": {\n" +
                 "    \"1\": {\n" +
                 "      \"title\": \"Question 1\",\n" +

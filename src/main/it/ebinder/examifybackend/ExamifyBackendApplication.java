@@ -1,5 +1,6 @@
 package it.ebinder.examifybackend;
 
+import it.ebinder.examifybackend.database.DatabaseManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

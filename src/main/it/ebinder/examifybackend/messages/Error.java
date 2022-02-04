@@ -4,12 +4,12 @@ import com.google.gson.JsonObject;
 
 public class Error extends Response{
 
-    public boolean success = false;
     public long errCode;
-    public JsonObject content;
 
     public Error(long errCode, String errMsg) {
+        super();
+        super.success = false;
         this.errCode = errCode;
-        this.content.addProperty("errMsg", errMsg);
+        super.content.addProperty("errMsg", errMsg);
     }
 }
