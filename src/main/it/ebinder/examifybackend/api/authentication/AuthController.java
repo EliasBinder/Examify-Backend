@@ -1,29 +1,27 @@
 package it.ebinder.examifybackend.api.authentication;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import it.ebinder.examifybackend.messages.Error;
 import it.ebinder.examifybackend.messages.Response;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.UUID;
 
 @RestController
 public class AuthController {
 
     @PostMapping (value = "/api/auth/login")
     public Response login(
-            HttpSession session,
-            @RequestBody JsonObject bodyJson
+            @RequestBody JsonObject bodyJson,
+            HttpServletResponse response
     ){
+        Response response1 = new Response();
         if (bodyJson.has("username") && bodyJson.has("password")){
             String submittedUsername = bodyJson.get("username").getAsString();
             String submittedPassword = bodyJson.get("password").getAsString();
-            if (AuthManager.login(session, submittedUsername, submittedPassword)){
-                return new Response();
+            if (AuthManager.login(response1.content, submittedUsername, submittedPassword)){
+                return response1;
             }else{
                 return new Error(3, "Invalid credentials");
             }
@@ -33,13 +31,20 @@ public class AuthController {
     }
 
     @GetMapping (value = "/api/auth/status")
-    public Response isLoggedIn(HttpSession session){
+    public Response isLoggedIn(
+            @CookieValue(value = "JSESSIONID", required = false) String sessionid
+    ){
         Response response = new Response();
-        if (AuthManager.getUsernameFromSession(session) != null)
-            response.content.addProperty("status", true);
-        else
+        if (sessionid != null) {
+            if (AuthManager.getUsernameFromSession(sessionid) != null)
+                response.content.addProperty("status", true);
+            else
+                response.content.addProperty("status", false);
+            return response;
+        }else{
             response.content.addProperty("status", false);
-        return response;
+            return response;
+        }
     }
 
     @PutMapping (value = "/api/auth/register")
@@ -57,12 +62,6 @@ public class AuthController {
         }else{
             return new Error(2, "Invalid body json! Missing field 'username' or 'password' or 'firstname' or 'lastname'!");
         }
-    }
-
-    @GetMapping (value = "/api/auth/logout")
-    public Response logout(HttpSession session){
-        AuthManager.logout(session);
-        return new Response();
     }
 
 }

@@ -1,22 +1,18 @@
 package it.ebinder.examifybackend.api.authentication;
 
+import com.google.gson.JsonObject;
 import it.ebinder.examifybackend.database.DatabaseManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import javax.servlet.http.HttpSession;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.UUID;
 
 public class AuthManager {
 
     private static JdbcTemplate jdbcTemplate = DatabaseManager.jdbcTemplate;
 
-    public static String getUsernameFromSession(HttpSession session){
-        return jdbcTemplate.query("SELECT email FROM Teacher WHERE sessionid = '" + session.getId() + "'", rs -> {
+    public static String getUsernameFromSession(String sessionid){
+        return jdbcTemplate.query("SELECT email FROM Teacher WHERE sessionid = '" + sessionid + "'", rs -> {
             if (rs.next())
                 return rs.getString(1);
             else
@@ -24,7 +20,7 @@ public class AuthManager {
         });
     }
 
-    public static boolean login(HttpSession session, String submittedUsername, String submittedPassword){
+    public static boolean login(JsonObject content, String submittedUsername, String submittedPassword){
         String storedHash = jdbcTemplate.query("SELECT password FROM Teacher WHERE email = '" + submittedUsername + "'", rs -> {
             if (rs.next())
                 return rs.getString(1);
@@ -35,7 +31,9 @@ public class AuthManager {
             return false;
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         if (bCryptPasswordEncoder.matches(submittedPassword, storedHash)){
-            jdbcTemplate.update("UPDATE Teacher SET sessionid = '" + session.getId() + "' WHERE email = '" + submittedUsername + "'");
+            String sessionid = UUID.randomUUID().toString();
+            jdbcTemplate.update("UPDATE Teacher SET sessionid = '" + sessionid + "' WHERE email = '" + submittedUsername + "'");
+            content.addProperty("sessionid", sessionid);
             return true;
         }
         return false;
@@ -45,10 +43,6 @@ public class AuthManager {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         String hashedPass = bCryptPasswordEncoder.encode(submittedPassword);
         return jdbcTemplate.update("INSERT INTO Teacher(email, password, firstname, lastname) VALUES('" + submittedUsername + "', '" + hashedPass + "', '" + submittedFirstname + "', '" + submittedLastname + "')") == 1;
-    }
-
-    public static void logout(HttpSession session){
-        session.invalidate();
     }
 
 }

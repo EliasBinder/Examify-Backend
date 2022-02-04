@@ -22,7 +22,8 @@ public class DatabaseManager {
                 "  sessionid varchar(36) DEFAULT NULL," +
                 "  firstname varchar(450) DEFAULT ''," +
                 "  lastname varchar(450) DEFAULT ''," +
-                "  created timestamp DEFAULT now()" +
+                "  created timestamp DEFAULT now()," +
+                "  profileimage text DEFAULT NULL" +
                 ")");
     }
 

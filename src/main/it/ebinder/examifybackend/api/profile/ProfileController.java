@@ -1,29 +1,24 @@
 package it.ebinder.examifybackend.api.profile;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.micrometer.core.instrument.util.IOUtils;
 import it.ebinder.examifybackend.messages.Error;
 import it.ebinder.examifybackend.messages.Response;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.UUID;
 
 @RestController
 public class ProfileController {
 
     @GetMapping (value = "/api/profile/package")
-    public Response getProfilePackage() throws FileNotFoundException {
-        //TODO
+    public Response getProfilePackage(
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
-        response.content.addProperty("firstname", "Elias");
-        response.content.addProperty("lastname", "Binder");
-        response.content.addProperty("email", "eliasbinder@icloud.com");
-        FileInputStream fis = new FileInputStream("/Users/eliasbinder/Desktop/testProfileImg.txt");
-        String profImg = IOUtils.toString(fis);
-        response.content.addProperty("profileImg", profImg);
+        ProfileManager.getProfilePackage(sessionid, response.content);
         return response;
     }
 
