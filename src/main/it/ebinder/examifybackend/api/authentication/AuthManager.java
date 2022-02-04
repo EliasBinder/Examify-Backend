@@ -45,4 +45,23 @@ public class AuthManager {
         return jdbcTemplate.update("INSERT INTO Teacher(email, password, firstname, lastname) VALUES('" + submittedUsername + "', '" + hashedPass + "', '" + submittedFirstname + "', '" + submittedLastname + "')") == 1;
     }
 
+    public static boolean resetPassword(String sessionID, String oldPass, String newPass){
+        String email = getUsernameFromSession(sessionID);
+        String storedHash = jdbcTemplate.query("SELECT password FROM Teacher WHERE email = '" + email + "'", rs -> {
+            if (rs.next())
+                return rs.getString(1);
+            else
+                return null;
+        });
+        if (storedHash == null)
+            return false;
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        if (bCryptPasswordEncoder.matches(oldPass, storedHash)){
+            String newPassEncoded = bCryptPasswordEncoder.encode(newPass);
+            jdbcTemplate.update("UPDATE Teacher SET password = '" + newPassEncoded + "' WHERE email = '" + email + "'");
+            return true;
+        }
+        return false;
+    }
+
 }

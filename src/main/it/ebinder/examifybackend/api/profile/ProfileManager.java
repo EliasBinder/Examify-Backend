@@ -15,7 +15,6 @@ public class ProfileManager {
 
     public static void getProfilePackage(String sessionid, JsonObject target){
         String email = AuthManager.getUsernameFromSession(sessionid);
-        System.out.println("email: " + email);
         SqlRowSet userRow = jdbcTemplate.queryForRowSet("SELECT firstname, lastname, profileimage FROM Teacher WHERE email='" + email + "'");
         userRow.next();
         target.addProperty("firstname", userRow.getString(1));
@@ -23,7 +22,24 @@ public class ProfileManager {
         target.addProperty("email", email);
         if (userRow.getString(3) != null) {
             target.addProperty("profileImg", userRow.getString(3));
+        }else{
+            target.addProperty("profileImg", "none");
         }
+    }
+
+    public static void deleteProfileImage(String sessionid){
+        String email = AuthManager.getUsernameFromSession(sessionid);
+        jdbcTemplate.update("UPDATE Teacher SET profileimage = null WHERE email = '" + email + "'");
+    }
+
+    public static void setProfileImage(String sessionid, String newImage){
+        String email = AuthManager.getUsernameFromSession(sessionid);
+        jdbcTemplate.update("UPDATE Teacher SET profileimage = '" + newImage + "' WHERE email = '" + email + "'");
+    }
+
+    public static void setProfileData(String sessionid, String newFirstname, String newLastname){
+        String email = AuthManager.getUsernameFromSession(sessionid);
+        jdbcTemplate.update("UPDATE Teacher SET firstname = '" + newFirstname + "', lastname = '" + newLastname + "' WHERE email = '" + email + "'");
     }
 
 }

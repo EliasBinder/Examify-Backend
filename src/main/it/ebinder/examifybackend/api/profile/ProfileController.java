@@ -2,6 +2,7 @@ package it.ebinder.examifybackend.api.profile;
 
 import com.google.gson.JsonObject;
 import io.micrometer.core.instrument.util.IOUtils;
+import it.ebinder.examifybackend.api.authentication.AuthManager;
 import it.ebinder.examifybackend.messages.Error;
 import it.ebinder.examifybackend.messages.Response;
 import org.springframework.web.bind.annotation.*;
@@ -23,19 +24,24 @@ public class ProfileController {
     }
 
     @DeleteMapping (value = "/api/profile/image")
-    public Response deleteProfileImage(){
-        //TODO
+    public Response deleteProfileImage(
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
+        ProfileManager.deleteProfileImage(sessionid);
         return response;
     }
 
     @PostMapping (value = "/api/profile/image")
-    public Response setProfileImage(@RequestBody JsonObject bodyJson){
+    public Response setProfileImage(
+            @CookieValue(value = "JSESSIONID") String sessionid,
+            @RequestBody JsonObject bodyJson
+    ){
         Response response = new Response();
 
         if (bodyJson.has("image")){
             String profileImage = bodyJson.get("image").getAsString();
-            //TODO: set profile image
+            ProfileManager.setProfileImage(sessionid, profileImage);
         }else{
             return new Error(2, "Invalid body json! Missing field 'image'!");
         }
@@ -44,13 +50,16 @@ public class ProfileController {
     }
 
     @PostMapping (value = "/api/profile/data")
-    public Response setProfileData(@RequestBody JsonObject bodyJson){
+    public Response setProfileData(
+            @CookieValue(value = "JSESSIONID") String sessionid,
+            @RequestBody JsonObject bodyJson
+    ){
         Response response = new Response();
 
         if (bodyJson.has("firstname") && bodyJson.has("lastname")){
             String firstname = bodyJson.get("firstname").getAsString();
             String lastname = bodyJson.get("lastname").getAsString();
-            //TODO: check for xss and set profile data
+            ProfileManager.setProfileData(sessionid, firstname, lastname);
             response.content.addProperty("firstname", firstname);
             response.content.addProperty("lastname", lastname);
         }else{
@@ -62,18 +71,23 @@ public class ProfileController {
 
 
     @PostMapping (value = "/api/profile/password")
-    public Response setProfilePassword(@RequestBody JsonObject bodyJson){
+    public Response setProfilePassword(
+            @CookieValue(value = "JSESSIONID") String sessionid,
+            @RequestBody JsonObject bodyJson
+    ){
         Response response = new Response();
 
         if (bodyJson.has("currentPassword") && bodyJson.has("newPassword")){
             String curPass = bodyJson.get("currentPassword").getAsString();
             String newPass = bodyJson.get("newPassword").getAsString();
-            //TODO: check curPass and update to newPass
+            if (AuthManager.resetPassword(sessionid, curPass, newPass)){
+                return response;
+            }else{
+                return new Error(5, "Invalid current password!");
+            }
         }else{
             return new Error(2, "Invalid body json! Missing field 'currentPassword' or 'newPassword'!");
         }
-
-        return response;
     }
 
 }
