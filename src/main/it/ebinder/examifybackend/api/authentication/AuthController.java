@@ -59,4 +59,10 @@ public class AuthController {
         }
     }
 
+    @GetMapping (value = "/api/auth/logout")
+    public Response logout(HttpSession session){
+        AuthManager.logout(session);
+        return new Response();
+    }
+
 }

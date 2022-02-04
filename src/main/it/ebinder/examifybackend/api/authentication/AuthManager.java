@@ -47,4 +47,8 @@ public class AuthManager {
         return jdbcTemplate.update("INSERT INTO Teacher(email, password, firstname, lastname) VALUES('" + submittedUsername + "', '" + hashedPass + "', '" + submittedFirstname + "', '" + submittedLastname + "')") == 1;
     }
 
+    public static void logout(HttpSession session){
+        session.invalidate();
+    }
+
 }
