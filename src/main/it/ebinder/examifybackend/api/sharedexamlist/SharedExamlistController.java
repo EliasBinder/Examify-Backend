@@ -2,6 +2,7 @@ package it.ebinder.examifybackend.api.sharedexamlist;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import it.ebinder.examifybackend.messages.Error;
 import it.ebinder.examifybackend.messages.Response;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,6 +55,23 @@ public class SharedExamlistController {
             @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
+
+        return response;
+    }
+
+    @DeleteMapping (value = "/api/sharedexamlist/exam")
+    public Response deleteShare(
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
+        Response response = new Response();
+
+        if (bodyJson.has("examID")){
+            String examID = bodyJson.get("examID").getAsString();
+            //TODO: delete exam
+        }else{
+            return new Error(2, "Invalid body json! Missing field 'examID'!");
+        }
 
         return response;
     }

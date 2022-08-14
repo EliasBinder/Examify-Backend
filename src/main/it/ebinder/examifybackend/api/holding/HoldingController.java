@@ -2,8 +2,15 @@ package it.ebinder.examifybackend.api.holding;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import it.ebinder.examifybackend.api.holdinglist.HoldinglistManager;
 import it.ebinder.examifybackend.messages.Response;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @RestController
 public class HoldingController {
@@ -13,6 +20,7 @@ public class HoldingController {
             @PathVariable String participationRef,
             @RequestBody JsonObject bodyJson
     ){
+
         Response response = new Response();
         response.content.addProperty("id", "abcde");
         String detailsJsonStr = "{\n" +
@@ -25,6 +33,9 @@ public class HoldingController {
                 "  }";
         JsonObject details = new Gson().fromJson(detailsJsonStr, JsonObject.class);
         response.content.add("details", details);
+
+        HoldingManager.addParticipant(participationRef, bodyJson.get("name").getAsString(), bodyJson.get("id").getAsInt());
+
         return response;
     }
 
@@ -83,5 +94,29 @@ public class HoldingController {
         //TODO
         return response;
     }
+
+    @GetMapping (value = "/api/holding/{participationRef}/details")
+    public Response getDetails(
+            @PathVariable String participationRef,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
+        Response response = new Response();
+        response.content.addProperty("exam", "IDB Exam");
+        response.content.addProperty("lecturer", "Prof. Max Mustermann");
+        response.content.addProperty("joinDate", 0);
+        response.content.addProperty("startDate", 0);
+        return response;
+    }
+
+    @GetMapping (value = "/api/holding/{participationRef}/participants")
+    public SseEmitter streamParticipants(
+            @PathVariable String participationRef,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
+        SseEmitter emitter = new SseEmitter(0L);
+        HoldingManager.streamAllParticipants(participationRef, emitter);
+        return emitter;
+    }
+
 
 }

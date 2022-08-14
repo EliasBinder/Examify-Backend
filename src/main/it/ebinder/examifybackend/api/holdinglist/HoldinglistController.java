@@ -14,7 +14,7 @@ public class HoldinglistController {
             @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
-        ExamlistManager.getExamlist(sessionid, response.content);
+        HoldinglistManager.getHoldinglist(sessionid, response.content);
         return response;
     }
 
