@@ -9,25 +9,11 @@ import org.springframework.web.bind.annotation.*;
 public class ExamlistController {
 
     @GetMapping (value = "/api/examlist")
-    public Response getExamlist(){
+    public Response getExamlist(
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
-
-        //---Exam 1
-        JsonObject exam1 = new JsonObject();
-        exam1.addProperty("name", "IDB Exam 2021/22");
-
-        //---Exam 2
-        JsonObject exam2 = new JsonObject();
-        exam2.addProperty("name", "DSA Exam 2021/22");
-
-        //---Exam 3
-        JsonObject exam3 = new JsonObject();
-        exam3.addProperty("name", "PTS Exam 2021/22");
-
-        response.content.add("001", exam1);
-        response.content.add("002", exam2);
-        response.content.add("003", exam3);
-
+        ExamlistManager.getExamlist(sessionid, response.content);
         return response;
     }
 

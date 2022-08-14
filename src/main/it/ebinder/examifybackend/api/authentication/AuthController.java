@@ -5,16 +5,15 @@ import it.ebinder.examifybackend.messages.Error;
 import it.ebinder.examifybackend.messages.Response;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 @RestController
 public class AuthController {
 
     @PostMapping (value = "/api/auth/login")
     public Response login(
-            @RequestBody JsonObject bodyJson,
-            HttpServletResponse response
+            @RequestBody JsonObject bodyJson
     ){
         Response response1 = new Response();
         if (bodyJson.has("username") && bodyJson.has("password")){
@@ -62,6 +61,15 @@ public class AuthController {
         }else{
             return new Error(2, "Invalid body json! Missing field 'username' or 'password' or 'firstname' or 'lastname'!");
         }
+    }
+
+    @GetMapping (value = "/api/auth/logout")
+    public Response logout(
+            @CookieValue(value = "JSESSIONID", required = false) String sessionid
+    ){
+        Response response = new Response();
+        //TODO
+        return response;
     }
 
 }

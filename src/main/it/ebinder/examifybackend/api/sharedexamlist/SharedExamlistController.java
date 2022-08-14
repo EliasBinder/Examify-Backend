@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.*;
 public class SharedExamlistController {
 
     @GetMapping (value = "/api/sharedexamlist")
-    public Response getExamlist(){
+    public Response getExamlist(
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
 
         //---Exam 1
@@ -33,12 +35,14 @@ public class SharedExamlistController {
 
     @GetMapping (value = "/api/sharedexamlist/{examID}")
     public Response getSharedWith(
-            @PathVariable String examID
+            @PathVariable String examID,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
         JsonArray targets = new JsonArray();
         targets.add("eliasbinder@icloud.com");
         targets.add("someuser@gmail.com");
+        targets.add("eliasbinder2@gmail.com");
         response.content.add("targets", targets);
         return response;
     }
@@ -46,7 +50,8 @@ public class SharedExamlistController {
     @PatchMapping (value = "/api/sharedexamlist/{examID}")
     public Response shareWith(
             @PathVariable String examID,
-            @RequestBody JsonObject bodyJson
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
 
