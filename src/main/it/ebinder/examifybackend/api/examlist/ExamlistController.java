@@ -18,14 +18,14 @@ public class ExamlistController {
     }
 
     @PutMapping (value = "/api/examlist/exam")
-    public Response createExam(@RequestBody JsonObject bodyJson){
+    public Response createExam(
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
-
         if (bodyJson.has("name")){
             String name = bodyJson.get("name").getAsString();
-            //TODO: check xss for name and create examid and create first question
-            response.content.addProperty("examID", 12345);
-            response.content.addProperty("name", name);
+            ExamlistManager.createExam(sessionid, name, response.content);
         }else{
             return new Error(2, "Invalid body json! Missing field 'name'!");
         }
@@ -34,20 +34,26 @@ public class ExamlistController {
     }
 
     @PutMapping (value = "/api/examlist/import")
-    public Response importExam(@RequestBody JsonObject bodyJson){
+    public Response importExam(
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
+        //TODO
         return response;
     }
 
     @PatchMapping (value = "/api/examlist/exam")
-    public Response renameExam(@RequestBody JsonObject bodyJson){
+    public Response renameExam(
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
 
         if (bodyJson.has("examID") && bodyJson.has("newName")){
             String examID = bodyJson.get("examID").getAsString();
             String newName = bodyJson.get("newName").getAsString();
-            //TODO: check xss for newName and update examid name
-            response.content.addProperty("newName", newName);
+            ExamlistManager.renameExam(sessionid, examID, newName, response.content);
         }else{
             return new Error(2, "Invalid body json! Missing field 'examID' or 'newName'!");
         }
@@ -56,12 +62,15 @@ public class ExamlistController {
     }
 
     @DeleteMapping (value = "/api/examlist/exam")
-    public Response deleteExam(@RequestBody JsonObject bodyJson){
+    public Response deleteExam(
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
 
         if (bodyJson.has("examID")){
             String examID = bodyJson.get("examID").getAsString();
-            //TODO: delete exam
+            ExamlistManager.deleteExam(sessionid, examID);
         }else{
             return new Error(2, "Invalid body json! Missing field 'examID'!");
         }

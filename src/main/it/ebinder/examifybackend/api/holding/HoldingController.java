@@ -3,6 +3,8 @@ package it.ebinder.examifybackend.api.holding;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import it.ebinder.examifybackend.api.holdinglist.HoldinglistManager;
+import it.ebinder.examifybackend.api.profile.ProfileManager;
+import it.ebinder.examifybackend.messages.Error;
 import it.ebinder.examifybackend.messages.Response;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -34,7 +36,7 @@ public class HoldingController {
         JsonObject details = new Gson().fromJson(detailsJsonStr, JsonObject.class);
         response.content.add("details", details);
 
-        HoldingManager.addParticipant(participationRef, bodyJson.get("name").getAsString(), bodyJson.get("id").getAsInt());
+        ParticipantsManager.addParticipant(participationRef, bodyJson.get("name").getAsString(), bodyJson.get("id").getAsInt());
 
         return response;
     }
@@ -102,9 +104,11 @@ public class HoldingController {
     ){
         Response response = new Response();
         response.content.addProperty("exam", "IDB Exam");
+        response.content.addProperty("examID", "001");
         response.content.addProperty("lecturer", "Prof. Max Mustermann");
         response.content.addProperty("joinDate", 0);
         response.content.addProperty("startDate", 0);
+        response.content.addProperty("endDate", 0);
         return response;
     }
 
@@ -114,7 +118,39 @@ public class HoldingController {
             @CookieValue(value = "JSESSIONID") String sessionid
     ){
         SseEmitter emitter = new SseEmitter(0L);
-        HoldingManager.streamAllParticipants(participationRef, emitter);
+        emitter.onCompletion(() -> ParticipantsManager.removeSseEmitter(emitter, participationRef));
+        emitter.onError((e) -> ParticipantsManager.removeSseEmitter(emitter, participationRef));
+        emitter.onTimeout(() -> ParticipantsManager.removeSseEmitter(emitter, participationRef));
+        ParticipantsManager.streamAllParticipants(participationRef, emitter);
+        return emitter;
+    }
+
+    @PutMapping (value = "/api/holding")
+    public Response createHolding(
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
+        if (bodyJson.has("examId") && bodyJson.has("join") && bodyJson.has("start") && bodyJson.has("end")){
+            System.out.println(new Gson().toJson(bodyJson));
+            Response response = new Response();
+            response.content.addProperty("ref", "dfgh-jklq");
+            return response;
+        }else{
+            return new Error(2, "Invalid body json! Missing field 'examId', 'join', 'start' or 'end'");
+        }
+    }
+
+    @GetMapping(value = "/api/holding/{participationRef}/submission/{participantID}")
+    public SseEmitter getSubmission(
+            @PathVariable String participationRef,
+            @PathVariable String participantID,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
+        SseEmitter emitter = new SseEmitter(0L);
+        emitter.onCompletion(() -> SubmissionsManager.removeSseEmitter(emitter, participationRef));
+        emitter.onError((e) -> SubmissionsManager.removeSseEmitter(emitter, participationRef));
+        emitter.onTimeout(() -> SubmissionsManager.removeSseEmitter(emitter, participationRef));
+        SubmissionsManager.streamAllSubmissions(participationRef, participantID, emitter);
         return emitter;
     }
 

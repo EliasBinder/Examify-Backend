@@ -1,7 +1,6 @@
 package it.ebinder.examifybackend.api.exam;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.ebinder.examifybackend.messages.Error;
@@ -10,55 +9,41 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @RestController
 public class ExamController {
 
-    @GetMapping (value = "/api/exam/{examid}/getpackage")
-    public Response getExamPackage(@PathVariable String examid){
+    @GetMapping (value = "/api/exam/{examID}/getpackage")
+    public Response getExamPackage(
+            @PathVariable String examID,
+            @CookieValue(value = "JSESSIONID") String sessionid
+    ){
         Response response = new Response();
-        //TODO
-        JsonObject examJson = new Gson().fromJson("{\n" +
-                "  \"title\": \"IDB Exam Demo\",\n" +
-                "  \"editable\": true,\n" +
-                "  \"questions\": {\n" +
-                "    \"1\": {\n" +
-                "      \"title\": \"Question 1\",\n" +
-                "      \"pos\": 1,\n" +
-                "      \"content\": [{\"insert\":  \"\\n\"}],\n" +
-                "      \"attachments\": {},\n" +
-                "      \"answer_types\": {\n" +
-                "        \"0\": {\n" +
-                "          \"pos\": 1,\n" +
-                "          \"type\": 0,\n" +
-                "          \"content\": {\n" +
-                "            \"wordlimit\": -1\n" +
-                "          }\n" +
-                "        }\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "}", JsonObject.class);
-        response.content = examJson;
+        ExamManager.getPackage(sessionid, examID, response.content);
         return response;
     }
 
     @DeleteMapping (value = "/api/exam/{examID}/questions/{questionID}")
     public Response deleteQuestion(
             @PathVariable String examID,
-            @PathVariable int questionID
+            @PathVariable int questionPosition,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
-        //TODO  (+ check that at least 1 Question always exists)
+        ExamAccessType accessType = ExamManager.getExamAccessType(sessionid, examID);
+        if (accessType == ExamAccessType.READ_WRITE)
+            ExamManager.deleteQuestion(examID, questionPosition);
+        else
+            return new Error(1, "You don't have access to this exam!");
         return response;
     }
 
     @PatchMapping (value = "/api/exam/{examID}/setquestionsposition")
     public Response moveQuestion(
             @PathVariable String examID,
-            @RequestBody JsonObject bodyJson
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
 
@@ -75,11 +60,13 @@ public class ExamController {
     public Response putQuestionAttachment(
             @PathVariable String examID,
             @PathVariable int questionID,
-            @RequestParam("file") MultipartFile attachment
+            @RequestParam("file") MultipartFile attachment,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
         System.out.println("Uploading file: " + attachment.getOriginalFilename());
         response.content.addProperty("id", UUID.randomUUID().toString());
+        //TODO: save file
         return response;
     }
 
@@ -87,10 +74,11 @@ public class ExamController {
     public Response deleteQuestionAttachment(
             @PathVariable String examID,
             @PathVariable int questionID,
-            @PathVariable String attachmentid
+            @PathVariable String attachmentid,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
-
+        //TODO
         return response;
     }
 
@@ -98,7 +86,8 @@ public class ExamController {
     public Response moveAnswerTypes(
             @PathVariable String examID,
             @PathVariable int questionID,
-            @RequestBody JsonObject bodyJson
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
 
@@ -116,10 +105,11 @@ public class ExamController {
             @PathVariable String examID,
             @PathVariable int questionID,
             @PathVariable int answerTypeID,
-            @RequestBody JsonObject bodyJson
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
-
+        //TODO
         return response;
     }
 
@@ -127,10 +117,13 @@ public class ExamController {
     @PatchMapping (value = "/api/exam/{examID}/updatetext")
     public Response updateText(
             @PathVariable String examID,
-            @RequestBody JsonObject bodyJson
+            @RequestBody JsonObject bodyJson,
+            @CookieValue(value = "JSESSIONID") String sessionid
     ){
         Response response = new Response();
-
+        System.out.println("Uodating text:");
+        System.out.println(new Gson().toJson(bodyJson));
+        ExamManager.update(sessionid, examID, bodyJson);
         return response;
     }
 }
